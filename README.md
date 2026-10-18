@@ -24,26 +24,30 @@ I'm a physician working in healthcare quality and data analytics. I built this l
 
 ```mermaid
 flowchart TB
-    ISP[ISP router] --> OPN[OPNsense firewall<br/>VM on Proxmox]
-    OPN --> SW[2.5G managed switch]
-    SW --> AP[Omada Wi-Fi AP<br/>Home / IoT / Guest SSIDs]
-    SW --> PVE[Proxmox VE host<br/>Dell OptiPlex 5090]
-    SW --> NAS[TrueNAS SCALE<br/>HP EliteDesk 800 G4]
+    ISP["ISP router"] --> OPN["OPNsense firewall<br/>VM on Proxmox"]
+    OPN --> SW["2.5G managed switch"]
+    SW --> AP["Omada Wi-Fi AP<br/>Home, IoT and Guest SSIDs"]
+    SW --> PVE["Proxmox VE host<br/>Dell OptiPlex 5090"]
+    SW --> NAS["TrueNAS SCALE<br/>HP EliteDesk 800 G4"]
 
-    subgraph PVE_GUESTS[Proxmox guests]
-        HA[Home Assistant OS VM]
-        DOCKER[Docker VM<br/>~28 containers]
-        LXC[LXC containers<br/>AdGuard, NPM, Jellyfin,<br/>PostgreSQL, RStudio, JupyterLab,<br/>Tailscale, MQTT, Paperless ...]
+    subgraph GUESTS["Proxmox guests"]
+        DOCKER["Docker VM<br/>about 28 containers"]
+        LXC["15 LXC containers<br/>AdGuard, Jellyfin, PostgreSQL,<br/>RStudio, Tailscale, MQTT"]
+        HA["Home Assistant OS VM"]
     end
-    PVE --> PVE_GUESTS
+    PVE --> DOCKER
+    PVE --> LXC
+    PVE --> HA
 
-    NAS -->|NFS / SMB| PVE_GUESTS
-    NAS --> PBS[Proxmox Backup Server<br/>VM on TrueNAS]
-    PVE_GUESTS -->|nightly backups| PBS
+    NAS -. "NFS and SMB shares" .-> DOCKER
+    NAS --> PBS["Proxmox Backup Server<br/>nightly backups of every guest"]
 
-    ZB[Zigbee coordinator<br/>SLZB-06U] --> HA
-    PLUGS[Tasmota smart plugs] -->|MQTT| HA
-    ECO[EcoFlow battery] --> HA
+    subgraph HOME["Smart home"]
+        ZB["Zigbee coordinator"]
+        PLUGS["Tasmota smart plugs"]
+        ECO["EcoFlow battery"]
+    end
+    HOME --> HA
 ```
 
 More detail: [docs/architecture.md](docs/architecture.md)
